@@ -28,7 +28,6 @@ export const Pagination = ({ totalPages }: { totalPages: number }) => {
           href={createPageURL(currentPage - 1)}
           isDisabled={currentPage <= 1}
         />
-        /
         <div className="flex -space-x-px">
           {allPages.map((page, index) => {
             let position: "first" | "last" | "single" | "middle" | undefined;
