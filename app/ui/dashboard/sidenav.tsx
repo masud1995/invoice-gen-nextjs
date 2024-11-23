@@ -1,5 +1,5 @@
 import Link from "next/link";
-import AcmeLogo from "../acme-logo";
+import AppLogo from "../app-logo";
 import NavLinks from "./nav-links";
 import { PowerIcon } from "@heroicons/react/24/outline";
 import { signOut } from "@/auth";
@@ -12,7 +12,7 @@ const SideNav = () => {
         href="/"
       >
         <div className="w-32 text-white md:w-40">
-          <AcmeLogo />
+          <AppLogo />
         </div>
       </Link>
       <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">

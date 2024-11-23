@@ -8,6 +8,10 @@ import {
   Revenue,
 } from "./definitions";
 import { formatCurrency } from "./utils";
+import { PrismaClient, Prisma } from "@prisma/client";
+import bcrypt from "bcrypt";
+
+const prisma = new PrismaClient();
 
 export async function fetchRevenue() {
   try {
@@ -221,5 +225,177 @@ export async function fetchFilteredCustomers(query: string) {
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch customer table.");
+  }
+}
+
+// Fetch users
+
+export async function fetchUsersPages(query: string) {
+  try {
+    const count = await prisma.user.count({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: query,
+            },
+          },
+          {
+            email: {
+              contains: query,
+            },
+          },
+        ],
+      },
+    });
+
+    const totalPages = Math.ceil(Number(count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of invoices.");
+  }
+}
+
+export async function fetchFilteredUsers(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { email: { contains: query } },
+          { phone: { contains: query } },
+        ],
+      },
+      skip: offset,
+      take: ITEMS_PER_PAGE,
+    });
+
+    return users;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch invoices.");
+  }
+}
+
+// Fetch items
+
+export async function fetchItems() {
+  try {
+    const items = await prisma.items.findMany({
+      where: {
+        type: "ForSale",
+      },
+    });
+
+    return items;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all sales items.");
+  }
+}
+
+export async function fetchItemsPages(query: string) {
+  try {
+    const count = await prisma.items.count({
+      where: {
+        name: {
+          contains: query,
+        },
+      },
+    });
+
+    const totalPages = Math.ceil(Number(count) / ITEMS_PER_PAGE);
+    return totalPages;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch total number of items.");
+  }
+}
+export async function fetchFilteredItems(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const items = await prisma.items.findMany({
+      where: {
+        name: { contains: query },
+      },
+      skip: offset,
+      take: ITEMS_PER_PAGE,
+    });
+
+    return items;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch items.");
+  }
+}
+
+export async function fetchUserById(id: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return user ? { ...user, id: user.id.toString() } : null;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch invoice.");
+  }
+}
+
+export async function fetchItemById(id: string) {
+  try {
+    const item = await prisma.items.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return item ? { ...item, id: item.id.toString() } : null;
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch item.");
+  }
+}
+
+// Fetch sales
+
+export async function fetchFilteredSales(query: string, currentPage: number) {
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  try {
+    const sales = await prisma.sales.findMany({
+      include: {
+        items: {
+          select: {
+            quantity: true,
+          },
+        },
+        addedBy: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        salesDate: "desc",
+      },
+      skip: offset,
+      take: ITEMS_PER_PAGE,
+    });
+
+    return sales.map((sale) => ({
+      ...sale,
+      totalItems: sale.items.reduce((sum, item) => sum + item.quantity, 0),
+    }));
+  } catch (error) {
+    console.error("Database Error:", error);
+    throw new Error("Failed to fetch sales.");
   }
 }

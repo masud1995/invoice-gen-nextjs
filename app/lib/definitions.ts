@@ -4,9 +4,10 @@
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
   id: string;
-  name: string;
+  name: string | null;
   email: string;
   password: string;
+  status: string;
 };
 
 export type Customer = {
@@ -86,3 +87,35 @@ export type InvoiceForm = {
   amount: number;
   status: "pending" | "paid";
 };
+
+export type UserForm = {
+  id: string;
+  name: string | null;
+  email: string;
+  password: string;
+  phone: string | null;
+  status: "Inactive" | "Active";
+  role: "ADMIN" | "USER";
+  type: "Employee" | "Partner";
+};
+
+export type ItemForm = {
+  id: string;
+  name: string;
+  price: number;
+  type: "ForSale" | "ForPurchase";
+};
+
+export type ItemField = {
+  id: number;
+  name: string;
+  price: number;
+  type: "ForSale" | "ForPurchase";
+};
+
+export interface SelectedItem {
+  itemId: string;
+  quantity: number;
+  price: number;
+  total: number;
+}

@@ -1,0 +1,186 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+} 
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  email               String   @unique
+  name                String?
+  phone               String?
+  type                UserType @default(Employee)
+  password            String
+  role                Role     @default(USER)
+  status              Status   @default(Active)
+  sales               Sales[] @relation("SalesAddedBy")
+  expensesAdded       Expenses[] @relation("ExpensesAddedBy")
+  expensesApproved    Expenses[] @relation("ExpensesApprovedBy")
+  purchasesAdded      Purchases[] @relation("PurchaseAddedBy")
+  purchasesApproved   Purchases[] @relation("PurchaseApprovedBy")
+  assetsAdded         Assets[] @relation("AssetAddedBy")
+  assetsApproved      Assets[] @relation("AssetApprovedBy")
+  salariesAdded       Salaries[] @relation("SalaryAddedBy")
+  salariesApproved    Salaries[] @relation("SalaryApprovedBy")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Sales {
+  id        Int      @id @default(autoincrement())
+  salesDate DateTime
+  amount    Float
+  discount  Float
+  total     Float
+  type      SalesType @default(Customer)
+  status    ActionStatus   @default(Pending)
+  items     SalesItems[] @relation("SalesItems")
+  addedBy   User  @relation("SalesAddedBy", fields: [addedById], references: [id])
+  addedById Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SalesItems {
+  id        Int      @id @default(autoincrement())
+  sales     Sales  @relation("SalesItems", fields: [salesId], references: [id])
+  salesId   Int
+  productId Int
+  quantity  Int
+  price     Float
+  discount  Float?
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Items {
+  id        Int      @id @default(autoincrement())
+  name      String
+  price     Float
+  type      ItemType @default(ForSale)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expenses {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  amount      Float
+  description String?
+  category    String
+  status      ActionStatus @default(Pending)
+  addedBy     User  @relation("ExpensesAddedBy", fields: [addedById], references: [id])
+  addedById   Int
+  approvedBy  User?  @relation("ExpensesApprovedBy", fields: [approvedById], references: [id])
+  approvedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ExpensesCategory {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Purchases {
+  id              Int      @id @default(autoincrement())
+  purchaseDate    DateTime
+  amount          Float
+  total           Float
+  status          ActionStatus   @default(Pending)
+  addedBy         User  @relation("PurchaseAddedBy", fields: [addedById], references: [id])
+  addedById       Int
+  approvedBy      User?  @relation("PurchaseApprovedBy", fields: [approvedById], references: [id])
+  approvedById    Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model PurchaseItems {
+  id          Int      @id @default(autoincrement())
+  purchaseId  Int
+  productId   Int
+  quantity    Int
+  price       Float
+  total       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Assets {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  amount      Float
+  description String?
+  status      ActionStatus @default(Pending)
+  purchasedBy Int?
+  addedBy     User  @relation("AssetAddedBy", fields: [addedById], references: [id])
+  addedById   Int
+  approvedBy  User?  @relation("AssetApprovedBy", fields: [approvedById], references: [id])
+  approvedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Salaries {
+  id          Int      @id @default(autoincrement())
+  date        DateTime
+  month       String
+  year        String
+  employeeId  Int
+  amount      Float
+  paidAmount  Float
+  dueAmount   Float
+  status      ActionStatus @default(Pending)
+  description String?
+  addedBy     User  @relation("SalaryAddedBy", fields: [addedById], references: [id])
+  addedById   Int
+  approvedBy  User?  @relation("SalaryApprovedBy", fields: [approvedById], references: [id])
+  approvedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Status {
+  Active
+  Inactive
+}
+
+enum ActionStatus {
+  Pending
+  Cancelled
+  Completed
+  Approved
+}
+
+enum UserType {
+  Partner
+  Employee
+}
+
+enum SalesType {
+  Customer
+  Partner
+}
+
+enum ItemType {
+  ForSale
+  ForPurchase
+}
